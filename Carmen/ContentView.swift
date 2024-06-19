@@ -74,9 +74,15 @@ struct ContentView: View {
                         pasteboard.setString(store.stringsForLanguage(language: selectedLanguage), forType: .string)
                     }
                     
-                    Button("Reload") {
-                        if let loadedUrl {
-                            loadUrl(url: loadedUrl)
+                    Button("Reload from Disk") {
+                        if let loadedUrl, let store = translationStores[selectedFile] {
+                            reloadTranslationStore(for: loadedUrl, translationStore: store, language: selectedLanguage)
+                        }
+                    }
+                    
+                    Button("Save") {
+                        if let loadedUrl, let store = translationStores[selectedFile] {
+                            saveTranslationStore(for: loadedUrl, translationStore: store, language: selectedLanguage)
                         }
                     }
                 }

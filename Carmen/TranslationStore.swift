@@ -34,6 +34,14 @@ func loadTranslationStores(for directoryURL: URL) -> [String: TranslationStore] 
     return translationStores
 }
 
+func reloadTranslationStore(for directoryURL: URL, translationStore: TranslationStore, language: String) {
+    translationStore.loadData(from: directoryURL, language: language)
+}
+
+func saveTranslationStore(for directoryURL: URL, translationStore: TranslationStore, language: String) {
+    translationStore.saveData(to: directoryURL, language: language)
+}
+
 @Observable
 final class TranslationStore {
     let fileName: String
@@ -113,7 +121,7 @@ final class TranslationStore {
         }.joined(separator: "\n")
     }
     
-    func loadData(from path: URL) {
+    func loadData(from path: URL, language: String? = nil) {
         let fileManager = FileManager.default
         
         do {
@@ -124,17 +132,51 @@ final class TranslationStore {
                     let stringsPath =
                     folder.appending(component: fileName)
                     
-                    if lang == "en" {
+                    if lang == "en" && language == nil {
                         let content = loadFile(url: stringsPath)
                         englishStrings = parseStrings(content: content)
                         keyOrder = parseStringsKeys(content: content)
                     } else {
-                        otherTranslations[lang] = parseStrings(content: loadFile(url: stringsPath))
+                        if language == nil || language == lang {
+                            otherTranslations[lang] = parseStrings(content: loadFile(url: stringsPath))
+                        }
                     }
                 }
             }
         } catch {
             print("Error reading directory contents: \(error)")
+        }
+    }
+    
+    func exportStrings(_ strings: [String: String]) -> String {
+        var output = ""
+        let sortedKeys = strings.keys.sorted()
+        for key in sortedKeys {
+            if let value = strings[key] {
+                output += "\"\(key)\" = \"\(value)\";\n"
+            }
+        }
+        return output
+    }
+    
+    func saveData(to path: URL, language: String) {
+        let fileManager = FileManager.default
+        do {
+            let folders = try fileManager.contentsOfDirectory(at: path, includingPropertiesForKeys: nil)
+            for folder in folders {
+                if folder.pathExtension == "lproj" {
+                    let lang = folder.lastPathComponent.replacingOccurrences(of: ".lproj", with: "")
+                    let stringsPath =
+                    folder.appending(component: fileName)
+                    
+                    if lang == language, let strings = otherTranslations[lang] {
+                        let content = exportStrings(strings)
+                        saveFile(url: stringsPath, content: content)
+                    }
+                }
+            }
+        } catch {
+            print("Error writing directory contents: \(error)")
         }
     }
     
@@ -158,6 +200,14 @@ final class TranslationStore {
         
         // Fallback or default to UTF-8
         return String(data: data, encoding: .utf8) ?? "Unable to decode the file."
+    }
+    
+    func saveFile(url: URL, content: String) {
+        do {
+            try content.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            print("Error writing file contents: \(error)")
+        }
     }
     
     func parseStrings(content: String) -> [String: String] {
