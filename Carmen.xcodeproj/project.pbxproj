@@ -11,6 +11,8 @@
 		230BFC3C2AD7A3E300179FF3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230BFC3B2AD7A3E300179FF3 /* ContentView.swift */; };
 		230BFC3E2AD7A3E500179FF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 230BFC3D2AD7A3E500179FF3 /* Assets.xcassets */; };
 		230BFC422AD7A3E500179FF3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 230BFC412AD7A3E500179FF3 /* Preview Assets.xcassets */; };
+		23843EFC2AE6C378008C7652 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = 23843EFB2AE6C378008C7652 /* OpenAI */; };
+		23AEBC782AE7D6CD00422B9E /* TranslationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +22,7 @@
 		230BFC3D2AD7A3E500179FF3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		230BFC3F2AD7A3E500179FF3 /* Carmen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Carmen.entitlements; sourceTree = "<group>"; };
 		230BFC412AD7A3E500179FF3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23843EFC2AE6C378008C7652 /* OpenAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -54,6 +58,7 @@
 			children = (
 				230BFC392AD7A3E300179FF3 /* CarmenApp.swift */,
 				230BFC3B2AD7A3E300179FF3 /* ContentView.swift */,
+				23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */,
 				230BFC3D2AD7A3E500179FF3 /* Assets.xcassets */,
 				230BFC3F2AD7A3E500179FF3 /* Carmen.entitlements */,
 				230BFC402AD7A3E500179FF3 /* Preview Content */,
@@ -85,6 +90,9 @@
 			dependencies = (
 			);
 			name = Carmen;
+			packageProductDependencies = (
+				23843EFB2AE6C378008C7652 /* OpenAI */,
+			);
 			productName = Carmen;
 			productReference = 230BFC362AD7A3E300179FF3 /* Carmen.app */;
 			productType = "com.apple.product-type.application";
@@ -113,6 +121,9 @@
 				Base,
 			);
 			mainGroup = 230BFC2D2AD7A3E300179FF3;
+			packageReferences = (
+				23843EFA2AE6C378008C7652 /* XCRemoteSwiftPackageReference "OpenAI" */,
+			);
 			productRefGroup = 230BFC372AD7A3E300179FF3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -139,6 +150,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23AEBC782AE7D6CD00422B9E /* TranslationStore.swift in Sources */,
 				230BFC3C2AD7A3E300179FF3 /* ContentView.swift in Sources */,
 				230BFC3A2AD7A3E300179FF3 /* CarmenApp.swift in Sources */,
 			);
@@ -359,6 +371,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		23843EFA2AE6C378008C7652 /* XCRemoteSwiftPackageReference "OpenAI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MacPaw/OpenAI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		23843EFB2AE6C378008C7652 /* OpenAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 23843EFA2AE6C378008C7652 /* XCRemoteSwiftPackageReference "OpenAI" */;
+			productName = OpenAI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 230BFC2E2AD7A3E300179FF3 /* Project object */;
 }
