@@ -21,8 +21,9 @@ struct ContentView: View {
     @Binding private var translationStores: [String: TranslationStore]
     @State private var selectedFile: String = ""
     @State private var selectedLanguage: String = ""
-    @State private var selectedKey: String?
+    @State private var selectedKeys = Set<String>()
     @State private var translationProgress: (Double, Double)?
+    @State private var loadedUrl: URL?
     
     init(translationStores: Binding<[String: TranslationStore]>) {
         self._translationStores = translationStores
@@ -72,6 +73,12 @@ struct ContentView: View {
                         pasteboard.clearContents()
                         pasteboard.setString(store.stringsForLanguage(language: selectedLanguage), forType: .string)
                     }
+                    
+                    Button("Reload") {
+                        if let loadedUrl {
+                            loadUrl(url: loadedUrl)
+                        }
+                    }
                 }
                 
                 if let translationProgress {
@@ -81,7 +88,7 @@ struct ContentView: View {
             .padding([.leading,.trailing,.top])
             
             if let store = translationStores[selectedFile] {
-                Table(store.englishStrings.keys.sorted(), selection: $selectedKey) {
+                Table(store.englishStrings.keys.sorted(), selection: $selectedKeys) {
                     TableColumn("Key") { key in
                         Text(key)
                     }
@@ -96,17 +103,6 @@ struct ContentView: View {
                         } else if let translations = store.otherTranslations[selectedLanguage] {
                             if let translation = translations[key] {
                                 Text(translation)
-                                    .contextMenu {
-                                        Button("Copy") {
-                                            let pasteboard = NSPasteboard.general
-                                            pasteboard.clearContents()
-                                            pasteboard.setString("\"\(key)\" = \"\(translation)\";", forType: .string)
-                                        }
-                                        
-                                        Button("Remove Translation") {
-                                            store.removeTranslation(for: key, language: selectedLanguage)
-                                        }
-                                    }
                             } else {
                                 Text("Missing Translation")
                                     .bold()
@@ -116,6 +112,32 @@ struct ContentView: View {
                     }
                 }
                 .frame(minWidth: 800, maxWidth: .infinity)
+                .contextMenu {
+                    Button("Copy") {
+                        var result = ""
+                        if let translations = store.otherTranslations[selectedLanguage] {
+                            for key in selectedKeys {
+                                if let translation = translations[key] {
+                                    result += "\"\(key)\" = \"\(translation)\";\n"
+                                }
+                            }
+                        }
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(result, forType: .string)
+                    }
+                    
+                    Button("Remove Translation") {
+                        for key in selectedKeys {
+                            store.removeTranslation(for: key, language: selectedLanguage)
+                        }
+                    }
+                }
+                .onDeleteCommand {
+                    for key in selectedKeys {
+                        store.removeTranslation(for: key, language: selectedLanguage)
+                    }
+                }
             }
             
             Spacer()
@@ -125,13 +147,18 @@ struct ContentView: View {
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
                 if let data = data, let urlString = String(data: data, encoding: .utf8), let url = URL(string: urlString) {
                     // Load translation stores using the new function
-                    translationStores = loadTranslationStores(for: url)
-                    selectedFile = translationStores.keys.sorted().first ?? ""
-                    selectedLanguage = translationStores[selectedFile]?.otherTranslations.keys.sorted().first ?? ""
+                    loadUrl(url: url)
                 }
             })
             return true
         }
+    }
+    
+    func loadUrl(url: URL) {
+        translationStores = loadTranslationStores(for: url)
+        selectedFile = translationStores.keys.sorted().first ?? ""
+        selectedLanguage = translationStores[selectedFile]?.otherTranslations.keys.sorted().first ?? ""
+        loadedUrl = url
     }
 }
 
