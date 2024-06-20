@@ -34,12 +34,28 @@ func loadTranslationStores(for directoryURL: URL) -> [String: TranslationStore] 
     return translationStores
 }
 
+func reloadTranslationStore(for directoryURL: URL, translationStore: TranslationStore, language: String) {
+    translationStore.loadData(from: directoryURL, language: language)
+}
+
+func saveTranslationStore(for directoryURL: URL, translationStore: TranslationStore, language: String) {
+    translationStore.saveData(to: directoryURL, language: language)
+}
+
 @Observable
 final class TranslationStore {
+    let BOMs: [String.Encoding : [UInt8]] = [
+        .utf8: [0xEF, 0xBB, 0xBF],
+        .utf16BigEndian: [0xFE, 0xFF],
+        .utf16LittleEndian: [0xFF, 0xFE]
+    ]
+    
     let fileName: String
     var keyOrder: [String] = []
     var englishStrings: [String: String] = [:]
     var otherTranslations: [String: [String: String]] = [:]
+    var encoding: String.Encoding = .utf8
+    var hasBOM: Bool = false
     
     let openAI = OpenAI(apiToken: "<YOUR TOKEN HERE>")
     
@@ -113,7 +129,7 @@ final class TranslationStore {
         }.joined(separator: "\n")
     }
     
-    func loadData(from path: URL) {
+    func loadData(from path: URL, language: String? = nil) {
         let fileManager = FileManager.default
         
         do {
@@ -124,17 +140,57 @@ final class TranslationStore {
                     let stringsPath =
                     folder.appending(component: fileName)
                     
-                    if lang == "en" {
+                    if lang == "en" && language == nil {
                         let content = loadFile(url: stringsPath)
                         englishStrings = parseStrings(content: content)
                         keyOrder = parseStringsKeys(content: content)
                     } else {
-                        otherTranslations[lang] = parseStrings(content: loadFile(url: stringsPath))
+                        if language == nil || language == lang {
+                            otherTranslations[lang] = parseStrings(content: loadFile(url: stringsPath))
+                        }
                     }
                 }
             }
         } catch {
             print("Error reading directory contents: \(error)")
+        }
+    }
+    
+    func exportStrings(_ strings: [String: String]) -> String {
+        var output = ""
+        let sortedKeys = strings.keys.sorted()
+        for key in sortedKeys {
+            if let value = strings[key] {
+                output += "\"\(key)\" = \"\(value)\";\n"
+            }
+        }
+        return output
+    }
+    
+    func saveData(to path: URL, language: String) {
+        let fileManager = FileManager.default
+        do {
+            let folders = try fileManager.contentsOfDirectory(at: path, includingPropertiesForKeys: nil)
+            for folder in folders {
+                if folder.pathExtension == "lproj" {
+                    let lang = folder.lastPathComponent.replacingOccurrences(of: ".lproj", with: "")
+                    let stringsPath =
+                    folder.appending(component: fileName)
+                    
+                    if lang == language, let strings = otherTranslations[lang] {
+                        let content = exportStrings(strings)
+                        saveFile(url: stringsPath, content: content)
+                    }
+                }
+            }
+        } catch {
+            print("Error writing directory contents: \(error)")
+        }
+    }
+    
+    func detectBOM(data: Data) {
+        if let BOM = BOMs[encoding] {
+            hasBOM = data.starts(with: BOM)
         }
     }
     
@@ -150,14 +206,37 @@ final class TranslationStore {
         // Attempt to decode as UTF-16 if likely UTF-16, otherwise, default to UTF-8
         if likelyUTF16 {
             if let contentUTF16LE = String(data: data, encoding: .utf16LittleEndian) {
+                encoding = .utf16LittleEndian
+                detectBOM(data: data)
                 return contentUTF16LE
             } else if let contentUTF16BE = String(data: data, encoding: .utf16BigEndian) {
+                encoding = .utf16BigEndian
+                detectBOM(data: data)
                 return contentUTF16BE
             }
         }
         
         // Fallback or default to UTF-8
+        detectBOM(data: data)
         return String(data: data, encoding: .utf8) ?? "Unable to decode the file."
+    }
+    
+    func saveFile(url: URL, content: String) {
+        do {
+            var data = Data()
+            
+            if hasBOM, let BOM = BOMs[encoding] {
+                data.append(contentsOf: BOM)
+            }
+            
+            if let encoded = content.data(using: encoding) {
+                data.append(encoded)
+            }
+            
+            try data.write(to: url)
+        } catch {
+            print("Error writing file contents: \(error)")
+        }
     }
     
     func parseStrings(content: String) -> [String: String] {

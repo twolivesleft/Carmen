@@ -13,6 +13,7 @@
 		230BFC422AD7A3E500179FF3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 230BFC412AD7A3E500179FF3 /* Preview Assets.xcassets */; };
 		23843EFC2AE6C378008C7652 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = 23843EFB2AE6C378008C7652 /* OpenAI */; };
 		23AEBC782AE7D6CD00422B9E /* TranslationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */; };
+		BE2C71AF2C227B5200D74A3E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2C71AE2C227B5000D74A3E /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		230BFC3F2AD7A3E500179FF3 /* Carmen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Carmen.entitlements; sourceTree = "<group>"; };
 		230BFC412AD7A3E500179FF3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationStore.swift; sourceTree = "<group>"; };
+		BE2C71AE2C227B5000D74A3E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 		230BFC382AD7A3E300179FF3 /* Carmen */ = {
 			isa = PBXGroup;
 			children = (
+				BE2C71AE2C227B5000D74A3E /* AppDelegate.swift */,
 				230BFC392AD7A3E300179FF3 /* CarmenApp.swift */,
 				230BFC3B2AD7A3E300179FF3 /* ContentView.swift */,
 				23AEBC772AE7D6CD00422B9E /* TranslationStore.swift */,
@@ -150,6 +153,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE2C71AF2C227B5200D74A3E /* AppDelegate.swift in Sources */,
 				23AEBC782AE7D6CD00422B9E /* TranslationStore.swift in Sources */,
 				230BFC3C2AD7A3E300179FF3 /* ContentView.swift in Sources */,
 				230BFC3A2AD7A3E300179FF3 /* CarmenApp.swift in Sources */,

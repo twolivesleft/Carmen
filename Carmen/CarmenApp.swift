@@ -10,6 +10,8 @@ import AppKit
 
 @main
 struct CarmenApp: App {
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+    
     @State private var translationStores: [String: TranslationStore] = [:]
     
     var body: some Scene {
