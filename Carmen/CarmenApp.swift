@@ -7,12 +7,18 @@
 
 import SwiftUI
 import AppKit
+import OpenAI
 
 @main
 struct CarmenApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
     
+    @Environment(\.openWindow) private var openWindow
+    
     @State private var translationStores: [String: TranslationStore] = [:]
+    
+    @AppStorage("OpenAIKey") static var openAIKey: String = ""
+    static var openAI: OpenAI = OpenAI(apiToken: openAIKey)
     
     var body: some Scene {
         WindowGroup {
@@ -27,6 +33,12 @@ struct CarmenApp: App {
                 
                 Divider()
                 
+                Button("Configure OpenAI") {
+                    openWindow(id: "key-entry")
+                }
+                
+                Divider()
+                
                 ForEach(NSDocumentController.shared.recentDocumentURLs, id: \.self) { url in
                     Button(url.lastPathComponent) {
                         NSDocumentController.shared.noteNewRecentDocumentURL(url)
@@ -34,6 +46,17 @@ struct CarmenApp: App {
                     }
                 }
             }
+        }
+        
+        Window("OpenAI Key", id: "key-entry") {
+            KeyEntryView()
+                .frame(minWidth: 400, minHeight: 100)
+                .frame(maxWidth: 400, maxHeight: 100)
+        }
+        .defaultPosition(.topTrailing)
+        .defaultSize(width: 400, height: 100)
+        .onChange(of: Self.openAIKey) { oldValue, newValue in
+            Self.openAI = OpenAI(apiToken: newValue)
         }
     }
     
@@ -51,5 +74,22 @@ struct CarmenApp: App {
 
     private func loadTranslationStores(from url: URL) {
         translationStores = Carmen.loadTranslationStores(for: url)
+    }
+}
+
+struct KeyEntryView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        Form {
+            Section {
+                TextField("OpenAI Key", text: CarmenApp.$openAIKey)
+                
+                Button("Close") {
+                    dismiss()
+                }
+            }
+        }
+        .padding()
     }
 }

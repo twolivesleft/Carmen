@@ -57,7 +57,9 @@ final class TranslationStore {
     var encoding: String.Encoding = .utf8
     var hasBOM: Bool = false
     
-    let openAI = OpenAI(apiToken: "<YOUR TOKEN HERE>")
+    var openAI: OpenAI {
+        CarmenApp.openAI
+    }
     
     init(name: String) {
         fileName = name
