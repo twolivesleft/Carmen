@@ -44,10 +44,18 @@ func saveTranslationStore(for directoryURL: URL, translationStore: TranslationSt
 
 @Observable
 final class TranslationStore {
+    let BOMs: [String.Encoding : [UInt8]] = [
+        .utf8: [0xEF, 0xBB, 0xBF],
+        .utf16BigEndian: [0xFE, 0xFF],
+        .utf16LittleEndian: [0xFF, 0xFE]
+    ]
+    
     let fileName: String
     var keyOrder: [String] = []
     var englishStrings: [String: String] = [:]
     var otherTranslations: [String: [String: String]] = [:]
+    var encoding: String.Encoding = .utf8
+    var hasBOM: Bool = false
     
     let openAI = OpenAI(apiToken: "<YOUR TOKEN HERE>")
     
@@ -180,6 +188,12 @@ final class TranslationStore {
         }
     }
     
+    func detectBOM(data: Data) {
+        if let BOM = BOMs[encoding] {
+            hasBOM = data.starts(with: BOM)
+        }
+    }
+    
     func loadFile(url: URL) -> String {
         let fileManager = FileManager.default
         guard let data = fileManager.contents(atPath: url.path) else {
@@ -192,19 +206,34 @@ final class TranslationStore {
         // Attempt to decode as UTF-16 if likely UTF-16, otherwise, default to UTF-8
         if likelyUTF16 {
             if let contentUTF16LE = String(data: data, encoding: .utf16LittleEndian) {
+                encoding = .utf16LittleEndian
+                detectBOM(data: data)
                 return contentUTF16LE
             } else if let contentUTF16BE = String(data: data, encoding: .utf16BigEndian) {
+                encoding = .utf16BigEndian
+                detectBOM(data: data)
                 return contentUTF16BE
             }
         }
         
         // Fallback or default to UTF-8
+        detectBOM(data: data)
         return String(data: data, encoding: .utf8) ?? "Unable to decode the file."
     }
     
     func saveFile(url: URL, content: String) {
         do {
-            try content.write(to: url, atomically: true, encoding: .utf8)
+            var data = Data()
+            
+            if hasBOM, let BOM = BOMs[encoding] {
+                data.append(contentsOf: BOM)
+            }
+            
+            if let encoded = content.data(using: encoding) {
+                data.append(encoded)
+            }
+            
+            try data.write(to: url)
         } catch {
             print("Error writing file contents: \(error)")
         }
