@@ -18,6 +18,7 @@ struct CarmenApp: App {
     @State private var translationStores: [String: TranslationStore] = [:]
     
     @AppStorage("OpenAIKey") static var openAIKey: String = ""
+    
     static var openAI: OpenAI = OpenAI(apiToken: openAIKey)
     
     var body: some Scene {
@@ -55,9 +56,6 @@ struct CarmenApp: App {
         }
         .defaultPosition(.topTrailing)
         .defaultSize(width: 400, height: 100)
-        .onChange(of: Self.openAIKey) { oldValue, newValue in
-            Self.openAI = OpenAI(apiToken: newValue)
-        }
     }
     
     func openFile() {
@@ -83,7 +81,12 @@ struct KeyEntryView: View {
     var body: some View {
         Form {
             Section {
-                TextField("OpenAI Key", text: CarmenApp.$openAIKey)
+                TextField("OpenAI Key", text: Binding {
+                    CarmenApp.openAIKey
+                } set: { newValue in
+                    CarmenApp.openAIKey = newValue
+                    CarmenApp.openAI = OpenAI(apiToken: newValue)
+                })
                 
                 Button("Close") {
                     dismiss()
