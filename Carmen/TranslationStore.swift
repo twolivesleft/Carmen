@@ -57,8 +57,6 @@ final class TranslationStore {
     var encoding: String.Encoding = .utf8
     var hasBOM: Bool = false
     
-    let openAI = OpenAI(apiToken: "<YOUR TOKEN HERE>")
-    
     init(name: String) {
         fileName = name
     }
@@ -76,7 +74,7 @@ final class TranslationStore {
         ]
     }
     
-    func translateAllMissingStrings(to language: String, progress: @escaping (Double, Double)->Void) async {
+    func translateAllMissingStrings(to language: String, progress: @escaping (Double, Double)->Void) async throws {
         guard let otherLanguageStrings = otherTranslations[language] else {
             return
         }
@@ -89,7 +87,7 @@ final class TranslationStore {
         progress(0, Double(missingKeys.count))
 
         for (index, key) in missingKeys.enumerated() {
-            let translatedValue = await translate(key: key, to: language)
+            let translatedValue = try await translate(key: key, to: language)
             
             if let value = translatedValue {
                 otherTranslations[language]?[key] = value
@@ -103,20 +101,15 @@ final class TranslationStore {
         }
     }
     
-    func translate(key: String, to language: String) async -> String? {
+    func translate(key: String, to language: String) async throws -> String? {
         guard let english = englishStrings[key] else { return nil }
         
         let query = ChatQuery(model: .gpt4, messages: Self.preamble + [
             .init(role: .user, content: "Key: \"\(key)\", String: \"\(english)\", Language: \(language)")
         ])
         
-        do {
-            let result = try await openAI.chats(query: query)
-            return result.choices.first?.message.content
-        } catch {
-            print(error)
-            return nil
-        }
+        let result = try await CarmenApp.openAI.chats(query: query)
+        return result.choices.first?.message.content
     }
     
     func stringsForLanguage(language: String) -> String {

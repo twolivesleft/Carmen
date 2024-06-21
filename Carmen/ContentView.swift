@@ -58,12 +58,17 @@ struct ContentView: View {
                     
                     Button("Translate Missing") {
                         Task { @MainActor in
-                            await store.translateAllMissingStrings(to: selectedLanguage) { done, remaining in
-                                if remaining > 0 {
-                                    translationProgress = (done, remaining)
-                                } else {
-                                    translationProgress = nil
+                            do {
+                                try await store.translateAllMissingStrings(to: selectedLanguage) { done, remaining in
+                                    if remaining > 0 {
+                                        translationProgress = (done, remaining)
+                                    } else {
+                                        translationProgress = nil
+                                    }
                                 }
+                            } catch {
+                                print(error)
+                                translationProgress = nil
                             }
                         }
                     }
