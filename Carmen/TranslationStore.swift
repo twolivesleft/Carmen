@@ -61,16 +61,16 @@ final class TranslationStore {
         fileName = name
     }
     
-    static var preamble: [Chat] {
+    static var preamble: [ChatQuery.ChatCompletionMessageParam] {
         [
-            .init(role: .system, content: "You are a professional iOS app translator. You specialize in apps for graphic design and programming. You will be provided with a string, its associated localization key, and target language code. You are to simply reply with the translation of the string into that target language — NO OTHER TEXT"),
-            .init(role: .system, content: "Some brand names within the app should not be translated, such as 'Air Code', 'Codea'"),
-            .init(role: .system, content: "DO NOT translate text within `backticks` as this refers to code"),
-            .init(role: .system, content: "DO NOT translate stuff that looks like Lua code (but string variables within the code text may be translated)"),
-            .init(role: .user, content: "Key: \"IMPORT_PROJECT_ALERT_ERROR_MESSAGE\", String: \"An error occurred during import. %@\", Language: ja"),
-            .init(role: .assistant, content: "インポート中にエラーが発生しました。%@"),
-            .init(role: .user, content: "Key: \"PROJECT_USER_DID_COPY_INFO\", String: \"The contents of project '%@' have been copied to the clipboard\", Language: de"),
-            .init(role: .assistant, content: "Die Inhalte des Projekts \"%@\" wurden in die Zwischenablage kopiert"),
+            .system(.init(content: "You are a professional iOS app translator. You specialize in apps for graphic design and programming. You will be provided with a string, its associated localization key, and target language code. You are to simply reply with the translation of the string into that target language — NO OTHER TEXT")),
+            .system(.init(content: "Some brand names within the app should not be translated, such as 'Air Code', 'Codea'")),
+            .system(.init(content: "DO NOT translate text within `backticks` as this refers to code")),
+            .system(.init(content: "DO NOT translate stuff that looks like Lua code (but string variables within the code text may be translated)")),
+            .user(.init(content: .string("Key: \"IMPORT_PROJECT_ALERT_ERROR_MESSAGE\", String: \"An error occurred during import. %@\", Language: ja"))),
+            .assistant(.init(content: "インポート中にエラーが発生しました。%@")),
+            .user(.init(content: .string("Key: \"PROJECT_USER_DID_COPY_INFO\", String: \"The contents of project '%@' have been copied to the clipboard\", Language: de"))),
+            .assistant(.init(content: "Die Inhalte des Projekts \"%@\" wurden in die Zwischenablage kopiert")),
         ]
     }
     
@@ -104,12 +104,13 @@ final class TranslationStore {
     func translate(key: String, to language: String) async throws -> String? {
         guard let english = englishStrings[key] else { return nil }
         
-        let query = ChatQuery(model: .gpt4, messages: Self.preamble + [
-            .init(role: .user, content: "Key: \"\(key)\", String: \"\(english)\", Language: \(language)")
-        ])
+        let query = ChatQuery(messages: Self.preamble + [
+            .user(.init(content: .string("Key: \"\(key)\", String: \"\(english)\", Language: \(language)")))
+        ], model: .gpt4_o)
         
         let result = try await CarmenApp.openAI.chats(query: query)
-        return result.choices.first?.message.content
+        
+        return result.choices.first?.message.content?.string
     }
     
     func stringsForLanguage(language: String) -> String {
