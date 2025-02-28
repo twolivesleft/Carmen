@@ -133,7 +133,7 @@ final class TranslationStore {
                     let stringsPath =
                     folder.appending(component: fileName)
                     
-                    if lang == "en" && language == nil {
+                    if (lang == "en" || lang == "Base") && language == nil {
                         let content = loadFile(url: stringsPath)
                         englishStrings = parseStrings(content: content)
                         keyOrder = parseStringsKeys(content: content)
